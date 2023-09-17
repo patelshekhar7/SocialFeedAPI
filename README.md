@@ -9,7 +9,7 @@ Microsoft .Net Framework 6.0
 # Gettting Started
 
 1. Clone the repo
-2. Retreive Authorization token to access Reddit API
+2. Retrieve Authorization token to access Reddit API
 
      Create a developer application on Reddit. Using the ClientId/Client Secret and user credentials, invoke Reddit's "https://www.reddit.com/api/v1/access_token" endpoint to get the access token.
 
