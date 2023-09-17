@@ -6,9 +6,11 @@ namespace SocialFeedAPI.Common.Middlewares.HttpClient
     public class RequestLimitHandler : DelegatingHandler
     {
         private readonly IConfiguration _configuration;
-        public RequestLimitHandler(IConfiguration configuration)
+        private readonly ILogger _logger;
+        public RequestLimitHandler(IConfiguration configuration, ILogger<RequestLimitHandler> logger)
         {
             this._configuration = configuration;
+            this._logger = logger;
         }
 
         protected string RequestLimitRemainingHeaderName
@@ -30,20 +32,20 @@ namespace SocialFeedAPI.Common.Middlewares.HttpClient
         private int? rateLimitRemaining = null;
         private int? rateLimitReset = null;
 
-        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        private void LogMessage (LogLevel logLevel, string message)
         {
-            Console.WriteLine("Rate Limit Remaining {0}", rateLimitRemaining != null ? rateLimitRemaining.Value.ToString() : "");
-           
+            this._logger.Log(logLevel, message);
+        }
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {  
             if (rateLimitRemaining != null)
             {
                 if (this.rateLimitRemaining.Value < 1)
-                {
+                {          
                     throw new RateLimitExceededException("Rate Limit Reached", rateLimitReset.Value);
                 }
             }
-
-            //add token to request headers
-
 
             var responseMessage = await base.SendAsync(request, cancellationToken);
 
@@ -59,13 +61,14 @@ namespace SocialFeedAPI.Common.Middlewares.HttpClient
                 }
 
                 IEnumerable<string> rateLimitResetValues;
-                if (headers.TryGetValues("x-ratelimit-reset", out rateLimitResetValues))
+                if (headers.TryGetValues(this.RequestLimitResetHeaderName, out rateLimitResetValues))
                 {
                     this.rateLimitReset = Convert.ToInt32(Convert.ToDouble(rateLimitResetValues.First()));
                 }
 
-                Console.WriteLine("Rate Limit Remaining {0}", rateLimitRemaining != null ? rateLimitRemaining.Value.ToString() : "");
-                
+                string logMessage = string.Format("Rate Limit Remaining {0}", 
+                                                   rateLimitRemaining != null ? rateLimitRemaining.Value.ToString() : "");
+                this.LogMessage(LogLevel.Information, logMessage);
             }
 
             return responseMessage;

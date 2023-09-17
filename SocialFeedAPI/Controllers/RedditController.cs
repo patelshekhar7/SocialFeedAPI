@@ -12,7 +12,7 @@ namespace SocialFeedAPI.Controllers
         private readonly IConfiguration _configuration;
         private readonly ILogger _logger;
 
-        public RedditController(IRedditAPIService redditAPIService, IConfiguration configuration, ILogger<RedditFeedController> logger)
+        public RedditController(IRedditAPIService redditAPIService, IConfiguration configuration, ILogger<RedditController> logger)
         {
             this._redditAPIService = redditAPIService;
             this._configuration = configuration;
